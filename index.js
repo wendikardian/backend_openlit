@@ -17,7 +17,9 @@ const {
   getAllClasses,
   getClassImage,
   getSpecifiedClass,
-  getSpecifiedUser
+  getSpecifiedUser,
+  isEnrolled,
+  addPosting
 } = require("./app/controllers/controller.js");
 const axios = require("axios");
 const multer = require("multer");
@@ -35,7 +37,7 @@ const upload = multer({ storage: storage });
 
 const configuration = new Configuration({
   organization: "org-u58nSOXtYQRjzYr7RTCzqKpn",
-  apiKey: "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",
+  apiKey: "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",
 });
 const openai = new OpenAIApi(configuration);
 
@@ -49,7 +51,7 @@ const port = 3060;
 app.get("/", (req, res) => {
   res.send("Hello, World!");
 });
-
+app.post("/add_posting", upload.single("file"), addPosting);
 app.post("/image/:id", upload.single("file"), function (req, res) {
   // get file name
   const { file } = req;
@@ -82,8 +84,9 @@ app.post("/class", addClass);
 app.get("/all_users", getAllUsers);
 app.get("/all_classes", getAllClasses);
 app.get("/class_image/:id", getClassImage);
-app.get("/class/:id", getSpecifiedClass);
+app.get("/class/:id/:user_id", getSpecifiedClass);
 app.get("/user/:id", getSpecifiedUser);
+app.get("/is_enrolled/:user_id/:class_id", isEnrolled);
 
 app.post("/chat", async (req, res) => {
   const { message, user_id, date } = req.body;

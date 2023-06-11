@@ -144,7 +144,7 @@ exports.getProfileImage = (req, res) => {
 };
 
 exports.getFeeds = (req, res) => {
-  const sql = "SELECT * FROM feeds";
+  const sql = "SELECT * FROM feeds order by id DESC";
   // Execute the query
   connection.query(sql, (err, results) => {
     if (err) {
@@ -269,7 +269,6 @@ exports.getAllUsers = (req, res) => {
   });
 };
 
-
 exports.getAllClasses = (req, res) => {
   // get all data from table user
   const query = `SELECT * FROM kelas`;
@@ -284,13 +283,12 @@ exports.getAllClasses = (req, res) => {
       res.json(results);
     }
   });
-}
-
+};
 
 // get all classes image
 exports.getClassImage = (req, res) => {
   const { id } = req.params;
-  console.log(id)
+  console.log(id);
   const query = `SELECT image FROM kelas WHERE class_code = ?`;
   connection.query(query, [id], (err, results) => {
     if (err) {
@@ -311,12 +309,11 @@ exports.getClassImage = (req, res) => {
       }
     }
   });
-}
-
+};
 
 exports.getSpecifiedClass = (req, res) => {
-  const { id } = req.params;
-  const query = `SELECT * FROM kelas WHERE class_code = ?`;
+  const { id, user_id } = req.params;
+  const query = `SELECT * FROM kelas WHERE id = ?`;
   connection.query(query, [id], (err, results) => {
     if (err) {
       console.error("Error retrieving user data:", err);
@@ -325,11 +322,24 @@ exports.getSpecifiedClass = (req, res) => {
       if (results.length === 0) {
         res.status(404).json({ message: "User not found" });
       } else {
-        res.json(results[0]);
+        // check if user is enrolled
+        const query = `SELECT * FROM kelas_member WHERE fk_user = ? AND fk_kelas = ?`;
+        connection.query(query, [user_id, id], (err, results2) => {
+          // if result more than one
+          // console.log(results2);
+          if (results2.length == 0) {
+            console.log(err);
+            // return result with new key is_enrolled false
+            res.json({ ...results[0], is_enrolled: false });
+          } else {
+            // return result with new key is_enrolled true
+            res.json({ ...results[0], is_enrolled: true });
+          }
+        });
       }
     }
   });
-}
+};
 
 exports.getSpecifiedUser = (req, res) => {
   const { id } = req.params;
@@ -347,4 +357,57 @@ exports.getSpecifiedUser = (req, res) => {
       }
     }
   });
-}
+};
+
+exports.isEnrolled = (req, res) => {
+  const { user_id, class_id } = req.params;
+  console.log(user_id, class_id);
+  const query = `SELECT * FROM kelas_member WHERE fk_user = ? AND fk_kelas = ?`;
+  connection.query(query, [user_id, class_id], (err, results) => {
+    if (err) {
+      console.error("Error retrieving user data:", err);
+      res.status(500).json({ error: "Failed to retrieve user data" });
+    } else {
+      if (results.length === 0) {
+        console.log(false);
+        res.json({ isEnrolled: false });
+      } else {
+        console.log(true);
+        res.json({ isEnrolled: true });
+      }
+    }
+  });
+};
+
+exports.addPosting = (req, res) => {
+
+  let { file } = req;
+  // check if file null or undefined or not
+
+  // if file undefined or null create a default value
+  if (file === undefined || file === null) {
+    file = {
+      filename: "",
+    };
+
+  }
+  const { data } = req.body;
+  // Conver json stringify data to json
+  const dataJson = JSON.parse(data);
+  console.log(file, dataJson);
+  // Insert data to table feeds
+  const query = `INSERT INTO feeds (fk_user, date, caption, image) VALUES (?, ?, ?, ?)`;
+  connection.query(
+    query,
+    [dataJson.fk_user, dataJson.date, dataJson.caption, file.filename ? file.filename : ''],
+    (err, results) => {
+      if (err) {
+        console.error("Error retrieving feed data:", err);
+        res.status(500).json({ error: "Internal Server Error" });
+        return;
+      }
+      // Return the retrieved data as a JSON response
+      res.status(200).json(results);
+    }
+  );
+};
