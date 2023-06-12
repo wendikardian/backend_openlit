@@ -575,3 +575,72 @@ exports.getAllBook = (req, res) => {
     res.status(200).json(results);
   });
 };
+
+exports.addSubBook = (req, res) => {
+  const { book_id, detail, title, question } = req.body;
+  const query = `INSERT INTO sub_book (book_id, detail, title, question) VALUES (?, ?, ?, ?)`;
+  connection.query(
+    query,
+    [book_id, detail, title, question],
+    (err, results) => {
+      if (err) {
+        console.error("Error retrieving feed data:", err);
+        res.status(500).json({ error: "Internal Server Error" });
+        return;
+      }
+      // Return the retrieved data as a JSON response
+      res.status(200).json(results);
+    }
+  );
+};
+
+exports.getSubBook = (req, res) => {
+  const { id } = req.params;
+  const query = `SELECT * FROM sub_book WHERE book_id = ?`;
+  connection.query(query, [id], (err, results) => {
+    if (err) {
+      console.error("Error retrieving sub book data:", err);
+      res.status(500).json({ error: "Internal Server Error" });
+      return;
+    }
+    // Return the retrieved data as a JSON response
+    console.log(results);
+    res.status(200).json(results);
+  });
+};
+
+exports.addAnswer = (req, res) => {
+  const { subbook_id, user_id, answer, date } = req.body;
+  console.log(subbook_id, user_id, answer, date);
+
+  const query = `INSERT INTO answer (subbook_id, user_id, answer, date) VALUES (?, ?, ?, ?)`;
+  connection.query(
+    query,
+    [subbook_id, user_id, answer, date],
+    (err, results) => {
+      if (err) {
+        console.error("Error retrieving sub book data:", err);
+        res.status(500).json({ error: "Internal Server Error" });
+        return;
+      }
+      // Return the retrieved data as a JSON response
+
+      res.status(200).json(results);
+    }
+  );
+};
+
+exports.getAnswer = (req, res) => {
+  const { id } = req.params;
+  const query = `SELECT * FROM answer WHERE subbook_id = ?`;
+  connection.query(query, [id], (err, results) => {
+    if (err) {
+      console.error("Error retrieving sub book data:", err);
+      res.status(500).json({ error: "Internal Server Error" });
+      return;
+    }
+    // Return the retrieved data as a JSON response
+
+    res.status(200).json(results);
+  });
+}

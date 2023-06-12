@@ -29,7 +29,11 @@ const {
   enrollClass,
   addBook,
   getBook,
-  getAllBook
+  getAllBook,
+  addSubBook,
+  getSubBook,
+  addAnswer,
+  getAnswer
 } = require("./app/controllers/controller.js");
 const axios = require("axios");
 const multer = require("multer");
@@ -47,7 +51,7 @@ const upload = multer({ storage: storage });
 
 const configuration = new Configuration({
   organization: "org-u58nSOXtYQRjzYr7RTCzqKpn",
-  apiKey: "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",
+  apiKey: "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",
 });
 const openai = new OpenAIApi(configuration);
 
@@ -107,6 +111,10 @@ app.post("/enroll_class",enrollClass );
 app.post("/book", addBook);
 app.get("/book/:id", getBook);
 app.get("/all_book", getAllBook);
+app.post("/sub_book", addSubBook);
+app.get("/sub_book/:id", getSubBook);
+app.post("/answer", addAnswer);
+app.get("/answer/:id", getAnswer);
 
 app.post("/chat", async (req, res) => {
   const { message, user_id, date } = req.body;
@@ -154,6 +162,20 @@ app.post("/resume", async (req, res) => {
   const response = await openai.createCompletion({
     model: "text-davinci-003",
     prompt: `Bisakah kamu buatkan summary secara lengkap singkat dan padat terkait buku ${book} minimal 500 kata !`,
+    max_tokens: 2000,
+    temperature: 0.5,
+  });
+  //   console.log(response.data.choices[0].text);
+  res.json({
+    message: response.data.choices[0].text,
+  });
+});
+app.post("/summary", async (req, res) => {
+  const { detail } = req.body;
+  console.log(detail);
+  const response = await openai.createCompletion({
+    model: "text-davinci-003",
+    prompt: `${detail} Rangkum kalimat diatas menjadi singkat dan padat`,
     max_tokens: 2000,
     temperature: 0.5,
   });
