@@ -144,7 +144,8 @@ exports.getProfileImage = (req, res) => {
 };
 
 exports.getFeeds = (req, res) => {
-  const sql = "SELECT * FROM feeds order by id DESC";
+  // select from table feeds joined by user table (id as primary) and using fk_user as foreign key
+  const sql = `SELECT feeds.id, feeds.caption, feeds.date, feeds.fk_user, user.username, user.image FROM feeds INNER JOIN user ON feeds.fk_user = user.id ORDER BY feeds.id DESC`;
   // Execute the query
   connection.query(sql, (err, results) => {
     if (err) {
@@ -154,6 +155,22 @@ exports.getFeeds = (req, res) => {
     }
     // Return the retrieved data as a JSON response
     res.status(200).json(results);
+  });
+};
+
+exports.getSpecifiedFeeds = (req, res) => {
+  const id = req.params.id;
+  // select from table feeds joined by user table (id as primary) and using fk_user as foreign key
+  const sql = `SELECT feeds.id, feeds.caption, feeds.date, feeds.fk_user, user.username, user.image FROM feeds INNER JOIN user ON feeds.fk_user = user.id WHERE feeds.id = ? ORDER BY feeds.id DESC`;
+  // Execute the query
+  connection.query(sql, [id], (err, results) => {
+    if (err) {
+      console.error("Error retrieving feed data:", err);
+      res.status(500).json({ error: "Internal Server Error" });
+      return;
+    }
+    // Return the retrieved data as a JSON response
+    res.status(200).json(results[0]);
   });
 };
 
@@ -380,7 +397,6 @@ exports.isEnrolled = (req, res) => {
 };
 
 exports.addPosting = (req, res) => {
-
   let { file } = req;
   // check if file null or undefined or not
 
@@ -389,7 +405,6 @@ exports.addPosting = (req, res) => {
     file = {
       filename: "",
     };
-
   }
   const { data } = req.body;
   // Conver json stringify data to json
@@ -399,7 +414,12 @@ exports.addPosting = (req, res) => {
   const query = `INSERT INTO feeds (fk_user, date, caption, image) VALUES (?, ?, ?, ?)`;
   connection.query(
     query,
-    [dataJson.fk_user, dataJson.date, dataJson.caption, file.filename ? file.filename : ''],
+    [
+      dataJson.fk_user,
+      dataJson.date,
+      dataJson.caption,
+      file.filename ? file.filename : "",
+    ],
     (err, results) => {
       if (err) {
         console.error("Error retrieving feed data:", err);
@@ -410,4 +430,148 @@ exports.addPosting = (req, res) => {
       res.status(200).json(results);
     }
   );
+};
+
+exports.getImageFeeds = (req, res) => {
+  const { id } = req.params;
+  console.log(id);
+  const query = `SELECT image FROM feeds WHERE id = ?`;
+  connection.query(query, [id], (err, results) => {
+    if (err) {
+      console.error("Error retrieving user data:", err);
+      res.status(500).json({ error: "Failed to retrieve user data" });
+    } else {
+      if (results.length === 0) {
+        res.status(404).json({ message: "User not found" });
+      } else {
+        console.log(results[0].image);
+        // res.sendFile(__dirname + `./../../images/${results[0].image}`);
+        // response by sending image
+        // forbidden error
+        console.log("Request comming");
+        res.sendFile(__dirname + "/images/" + results[0].image);
+        // res.sendFile(__dirname + `./../../images/default.jpg`);
+        // res.sendFile(__dirname + `./../../images/not mirror.jpeg`);
+      }
+    }
+  });
+};
+
+exports.commentFeeds = (req, res) => {
+  const { user_id, comment, feed_id, date } = req.body;
+  console.log(date);
+  const query = `INSERT INTO comment (fk_user, fk_feeds, comment, date) VALUES (?, ?, ?, ?)`;
+  connection.query(query, [user_id, feed_id, comment, date], (err, results) => {
+    if (err) {
+      console.error("Error retrieving feed data:", err);
+      res.status(500).json({ error: "Internal Server Error" });
+      return;
+    }
+    // Return the retrieved data as a JSON response
+    res.status(200).json(results);
+  });
+};
+
+exports.getComment = (req, res) => {
+  const { id } = req.params;
+  // select from feeds join table user fk_user as foreign key (user.id primary)
+  const query =
+    "SELECT comment.id, comment.comment, comment.fk_feeds, comment.fk_user, user.username as username FROM comment JOIN user ON user.id = comment.fk_user WHERE comment.fk_feeds = ? order by id DESC ;";
+  connection.query(query, [id], (err, results) => {
+    if (err) {
+      console.error("Error retrieving feed data:", err);
+      res.status(500).json({ error: "Internal Server Error" });
+      return;
+    }
+    // Return the retrieved data as a JSON response
+    res.status(200).json(results);
+  });
+};
+
+exports.deleteFeeds = (req, res) => {
+  const { id } = req.params;
+  const query = `DELETE FROM feeds WHERE id = ?`;
+  connection.query(query, [id], (err, results) => {
+    if (err) {
+      console.error("Error retrieving feed data:", err);
+      res.status(500).json({ error: "Internal Server Error" });
+      return;
+    }
+    // Return the retrieved data as a JSON response
+    res.status(200).json(results);
+  });
+};
+
+exports.editFeeds = (req, res) => {
+  const { id } = req.params;
+  const { content } = req.body;
+  const query = `UPDATE feeds SET caption = ? WHERE id = ?`;
+  connection.query(query, [content, id], (err, results) => {
+    if (err) {
+      console.error("Error retrieving feed data:", err);
+      res.status(500).json({ error: "Internal Server Error" });
+      return;
+    }
+    // Return the retrieved data as a JSON response
+    res.status(200).json(results);
+  });
+};
+
+exports.enrollClass = (req, res) => {
+  const { user_id, class_id } = req.body;
+  const query = `INSERT INTO kelas_member (fk_user, fk_kelas) VALUES (?, ?)`;
+  connection.query(query, [user_id, class_id], (err, results) => {
+    if (err) {
+      console.error("Error retrieving feed data:", err);
+      res.status(500).json({ error: "Internal Server Error" });
+      return;
+    }
+    // Return the retrieved data as a JSON response
+    res.status(200).json(results);
+  });
+};
+
+exports.addBook = (req, res) => {
+  const { title, author, genre, imageLink, description } = req.body;
+  const query = `INSERT INTO book (title, author, genre, image, description) VALUES (?, ?, ?, ?, ?)`;
+  connection.query(
+    query,
+    [title, author, genre, imageLink, description],
+    (err, results) => {
+      if (err) {
+        console.error("Error retrieving feed data:", err);
+        res.status(500).json({ error: "Internal Server Error" });
+        return;
+      }
+      // Return the retrieved data as a JSON response
+      res.status(200).json(results);
+    }
+  );
+};
+
+exports.getBook = (req, res) => {
+  const { id } = req.params;
+  const query = `SELECT * FROM book WHERE id = ?`;
+  connection.query(query, [id], (err, results) => {
+    if (err) {
+      console.error("Error retrieving feed data:", err);
+      res.status(500).json({ error: "Internal Server Error" });
+      return;
+    }
+    // Return the retrieved data as a JSON response
+    res.status(200).json(results[0]);
+  });
+};
+
+exports.getAllBook = (req, res) => {
+  const query = `SELECT * FROM book order by id DESC`;
+  connection.query(query, (err, results) => {
+    if (err) {
+      console.error("Error retrieving feed data:", err);
+      res.status(500).json({ error: "Internal Server Error" });
+      return;
+    }
+    // Return the retrieved data as a JSON response
+    res.status(200).json(results);
+  });
 };

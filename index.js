@@ -19,7 +19,17 @@ const {
   getSpecifiedClass,
   getSpecifiedUser,
   isEnrolled,
-  addPosting
+  addPosting,
+  getImageFeeds,
+  getSpecifiedFeeds,
+  commentFeeds,
+  getComment,
+  deleteFeeds,
+  editFeeds,
+  enrollClass,
+  addBook,
+  getBook,
+  getAllBook
 } = require("./app/controllers/controller.js");
 const axios = require("axios");
 const multer = require("multer");
@@ -37,7 +47,7 @@ const upload = multer({ storage: storage });
 
 const configuration = new Configuration({
   organization: "org-u58nSOXtYQRjzYr7RTCzqKpn",
-  apiKey: "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",
+  apiKey: "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",
 });
 const openai = new OpenAIApi(configuration);
 
@@ -87,6 +97,16 @@ app.get("/class_image/:id", getClassImage);
 app.get("/class/:id/:user_id", getSpecifiedClass);
 app.get("/user/:id", getSpecifiedUser);
 app.get("/is_enrolled/:user_id/:class_id", isEnrolled);
+app.get("/image_feeds/:id", getImageFeeds);
+app.get("/feeds/:id", getSpecifiedFeeds);
+app.post("/comment", commentFeeds);
+app.get("/comment/:id", getComment);
+app.delete("/feeds/:id", deleteFeeds);
+app.put("/feeds/:id", editFeeds);
+app.post("/enroll_class",enrollClass );
+app.post("/book", addBook);
+app.get("/book/:id", getBook);
+app.get("/all_book", getAllBook);
 
 app.post("/chat", async (req, res) => {
   const { message, user_id, date } = req.body;
