@@ -449,7 +449,9 @@ exports.getImageFeeds = (req, res) => {
         // response by sending image
         // forbidden error
         console.log("Request comming");
-        res.sendFile(__dirname + "/images/" + results[0].image);
+        if (results[0].image != "index.html") {
+          res.sendFile(__dirname + "/images/" + results[0].image);
+        }
         // res.sendFile(__dirname + `./../../images/default.jpg`);
         // res.sendFile(__dirname + `./../../images/not mirror.jpeg`);
       }
@@ -632,7 +634,8 @@ exports.addAnswer = (req, res) => {
 
 exports.getAnswer = (req, res) => {
   const { id } = req.params;
-  const query = `SELECT * FROM answer WHERE subbook_id = ?`;
+  // Join with user table
+  const query = `SELECT answer.id, answer.subbook_id, answer.user_id, answer.answer, answer.date, user.name FROM answer INNER JOIN user ON answer.user_id = user.id WHERE subbook_id = ?`;
   connection.query(query, [id], (err, results) => {
     if (err) {
       console.error("Error retrieving sub book data:", err);
@@ -643,4 +646,34 @@ exports.getAnswer = (req, res) => {
 
     res.status(200).json(results);
   });
-}
+};
+
+exports.getClassBook = (req, res) => {
+  const { id } = req.params;
+  const query = `SELECT * FROM class_book WHERE class_id = ?`;
+  connection.query(query, [id], (err, results) => {
+    if (err) {
+      console.error("Error retrieving sub book data:", err);
+      res.status(500).json({ error: "Internal Server Error" });
+      return;
+    }
+    // Return the retrieved data as a JSON response
+
+    res.status(200).json(results);
+  });
+};
+
+exports.addClassBook = (req, res) => {
+  const { class_id, book_id } = req.body;
+  const query = `INSERT INTO class_book (class_id, book_id) VALUES (?, ?)`;
+  connection.query(query, [class_id, book_id], (err, results) => {
+    if (err) {
+      console.error("Error retrieving sub book data:", err);
+      res.status(500).json({ error: "Internal Server Error" });
+      return;
+    }
+    // Return the retrieved data as a JSON response
+
+    res.status(200).json(results);
+  });
+};

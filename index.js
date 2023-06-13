@@ -33,7 +33,9 @@ const {
   addSubBook,
   getSubBook,
   addAnswer,
-  getAnswer
+  getAnswer,
+  getClassBook,
+  addClassBook
 } = require("./app/controllers/controller.js");
 const axios = require("axios");
 const multer = require("multer");
@@ -51,7 +53,7 @@ const upload = multer({ storage: storage });
 
 const configuration = new Configuration({
   organization: "org-u58nSOXtYQRjzYr7RTCzqKpn",
-  apiKey: "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",
+  apiKey: "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",
 });
 const openai = new OpenAIApi(configuration);
 
@@ -115,6 +117,8 @@ app.post("/sub_book", addSubBook);
 app.get("/sub_book/:id", getSubBook);
 app.post("/answer", addAnswer);
 app.get("/answer/:id", getAnswer);
+app.get("/class_book/:id", getClassBook);
+app.post("/class_book", addClassBook);
 
 app.post("/chat", async (req, res) => {
   const { message, user_id, date } = req.body;
