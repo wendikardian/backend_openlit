@@ -677,3 +677,78 @@ exports.addClassBook = (req, res) => {
     res.status(200).json(results);
   });
 };
+
+exports.getClassBookFull = (req, res) => {
+  const { id } = req.params;
+  // join from tabel book
+  const query = `SELECT class_book.id, class_book.class_id, class_book.book_id, book.title, book.author, book.genre, book.image, book.description FROM class_book INNER JOIN book ON class_book.book_id = book.id WHERE class_id = ?`;
+  connection.query(query, [id], (err, results) => {
+    if (err) {
+      console.error("Error retrieving sub book data:", err);
+      res.status(500).json({ error: "Internal Server Error" });
+      return;
+    }
+    // Return the retrieved data as a JSON response
+
+    res.status(200).json(results);
+  });
+};
+
+exports.getClassMember = (req, res) => {
+  const { id } = req.params;
+  // join from table kelas_member with user table
+  const query = `SELECT kelas_member.id, kelas_member.fk_kelas, kelas_member.fk_user, user.name, user.email, user.username FROM kelas_member INNER JOIN user ON kelas_member.fk_user = user.id WHERE fk_kelas = ?`;
+  connection.query(query, [id], (err, results) => {
+    if (err) {
+      console.error("Error retrieving sub book data:", err);
+      res.status(500).json({ error: "Internal Server Error" });
+      return;
+    }
+    // Return the retrieved data as a JSON response
+
+    res.status(200).json(results);
+  });
+};
+
+exports.getAllAnswer = (req, res) => {
+  const query = "SELECT * FROM answer";
+  connection.query(query, (err, results) => {
+    if (err) {
+      console.error("Error retrieving feed data:", err);
+      res.status(500).json({ error: "Internal Server Error" });
+      return;
+    }
+    // Return the retrieved data as a JSON response
+    res.status(200).json(results);
+  });
+};
+
+
+exports.deleteSubBook = (req, res) => {
+  const { id } = req.params;
+  const query = "DELETE FROM sub_book WHERE id = ?";
+  connection.query(query, [id], (err, results) => {
+    if (err) {
+      console.error("Error deleting sub book data:", err);
+      res.status(500).json({ error: "Internal Server Error" });
+      return;
+    }
+    // Return the retrieved data as a JSON response
+    res.status(200).json(results);
+  });
+}
+
+exports.editClass = (req, res) => {
+  const { id } = req.params;
+  const { name, description, password } = req.body;
+  const query = "UPDATE kelas SET class_name = ?, description = ?, password = ? WHERE id = ?";
+  connection.query(query, [name, description, password, id], (err, results) => {
+    if (err) {
+      console.error("Error updating class data:", err);
+      res.status(500).json({ error: "Internal Server Error" });
+      return;
+    }
+    // Return the retrieved data as a JSON response
+    res.status(200).json(results);
+  });
+}

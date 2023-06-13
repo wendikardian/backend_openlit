@@ -35,7 +35,12 @@ const {
   addAnswer,
   getAnswer,
   getClassBook,
-  addClassBook
+  addClassBook,
+  getClassBookFull,
+  getClassMember,
+  getAllAnswer,
+  deleteSubBook,
+  editClass
 } = require("./app/controllers/controller.js");
 const axios = require("axios");
 const multer = require("multer");
@@ -53,7 +58,7 @@ const upload = multer({ storage: storage });
 
 const configuration = new Configuration({
   organization: "org-u58nSOXtYQRjzYr7RTCzqKpn",
-  apiKey: "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",
+  apiKey: "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",
 });
 const openai = new OpenAIApi(configuration);
 
@@ -73,6 +78,25 @@ app.post("/image/:id", upload.single("file"), function (req, res) {
   const { file } = req;
   console.log(file);
   $query = "UPDATE user SET image = ? WHERE id = ?";
+  connection.query(
+    $query,
+    [file.originalname, req.params.id],
+    (err, result) => {
+      if (err) {
+        console.error("Error inserting data:", err);
+        res.status(500).json({ error: "Internal Server Error" });
+        return;
+      }
+      res.status(200).json({ message: "Image uploaded successfully" });
+    }
+  );
+});
+app.post("/image_class/:id", upload.single("file"), function (req, res) {
+  // get file name
+  const { file } = req;
+  console.log(file);
+  console.log("Working")
+  $query = "UPDATE kelas SET image = ? WHERE id = ?";
   connection.query(
     $query,
     [file.originalname, req.params.id],
@@ -119,6 +143,12 @@ app.post("/answer", addAnswer);
 app.get("/answer/:id", getAnswer);
 app.get("/class_book/:id", getClassBook);
 app.post("/class_book", addClassBook);
+app.get("/class_book_full/:id", getClassBookFull);
+app.get("/class_member/:id", getClassMember);
+app.get("/all_answer/", getAllAnswer);
+app.delete("/sub_book/:id", deleteSubBook);
+app.put("/class/:id", editClass);
+
 
 app.post("/chat", async (req, res) => {
   const { message, user_id, date } = req.body;
@@ -179,7 +209,7 @@ app.post("/summary", async (req, res) => {
   console.log(detail);
   const response = await openai.createCompletion({
     model: "text-davinci-003",
-    prompt: `${detail} Rangkum kalimat diatas menjadi singkat dan padat`,
+    prompt: `${detail} Rangkum kalimat diatas menjadi singkat dan padat dalam bentuk point`,
     max_tokens: 2000,
     temperature: 0.5,
   });
