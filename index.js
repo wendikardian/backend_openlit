@@ -58,7 +58,7 @@ const upload = multer({ storage: storage });
 
 const configuration = new Configuration({
   organization: "org-u58nSOXtYQRjzYr7RTCzqKpn",
-  apiKey: "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",
+  apiKey: "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",
 });
 const openai = new OpenAIApi(configuration);
 
